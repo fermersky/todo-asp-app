@@ -1,0 +1,30 @@
+﻿ul {
+}
+
+.category-hints {
+    position: absolute;
+    top: 60px;
+    left: 15px;
+    background: #fff;
+    padding: 10px 0;
+    box-shadow: 0 5px 5px #ccc;
+    z-index: 1;
+    margin: 0;
+    min-width: 160px;
+    visibility: hidden;
+    opacity: 0;
+}
+
+.hints-list {
+    margin: 0;
+}
+
+.hint-item {
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.hint-item:hover {
+    background: #eee;
+}

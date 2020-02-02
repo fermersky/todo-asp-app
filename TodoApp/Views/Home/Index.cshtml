@@ -1,0 +1,125 @@
+﻿@section styles{
+    <link href="~/Content/main-container.css" rel="stylesheet" />
+    <link href="~/Content/todo-list.css" rel="stylesheet" />
+}
+
+<div class="todo-list-container bshblock">
+    <div class="todo-list-header">
+        @Html.ActionLink("Add task", "Add", null, new { @class = "btn btn-raised btn-primary" })
+    </div>
+    <div class="todo-list-body">
+        <div class="loader">Loading...</div>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        const displayTodosData = todos => {
+            const todoContainer = $(".todo-list-body");
+            let markUp = "";
+
+            todoContainer.empty();
+
+            const noCompletedTodos = todos.filter(todo => !todo.IsCompleted);
+            const completedTodos = todos.filter(todo => todo.IsCompleted);
+
+            if (noCompletedTodos.length > 0) {
+                todoContainer.append(`<h3 class="todo-list-title">Newest!</h3>`);
+                markUp = getHtmlTodosMarkupFromList(noCompletedTodos);
+                todoContainer.append(markUp);
+            }
+
+            if (completedTodos.length > 0) {
+                todoContainer.append(`<h3 class="todo-list-title">Just done. Good job, man!</h3>`);
+                markUp = getHtmlTodosMarkupFromList(completedTodos);
+                todoContainer.append(markUp);
+            }
+
+            if (noCompletedTodos.length === 0 && completedTodos.length === 0) {
+                todoContainer.append(`<h3 class="todo-list-title">You don't have any task!</h3>`);
+            }
+
+            $('.todo-complete-mark').on('click', function () {
+                event.preventDefault();
+
+                $(this)
+                    .closest('.todo-item')
+                    .find('.todo-thoughtline')
+                    .animate({ width: '102%' }, 200, () => {
+                        const todo = $(this).closest(".todo-item").data("todojson");
+                        const service = new TodoAjaxService();
+                        service.completeTodoAndPut(todo, renderTodosInPage);
+                    })
+            })
+
+            $('.delete-todo').on('click', function () {
+                event.preventDefault();
+
+                const todo = $(this).closest(".todo-item").data("todojson");
+                const service = new TodoAjaxService();
+                $(this).closest(".todo-item").fadeOut(300, () => service.deleteTodo(todo.Id, renderTodosInPage));
+            })
+
+        }
+
+        const getHtmlTodosMarkupFromList = todos => {
+            let markUp = '';
+
+            todos.map(todo => {
+                let priority;
+
+                if (todo.Priority == 0) {
+                    priority = 'low';
+                } else if (todo.Priority == 1) {
+                    priority = 'medium';
+                } else if (todo.Priority == 2) {
+                    priority = 'hight';
+                }
+
+                // Как вам идея хранить json тудухи в атрибуте? Нигде не видел такой реализации, поэтому не знаю
+                // делают так или нет. Зато, очень эффективно и гораздо быстрее, чем считывать заново каждое поле
+                // тудухи, по которой кликнули
+
+                const todoMarkUp = `
+                        <div class="todo-item ${todo.IsCompleted && "completed"}" data-todojson='${JSON.stringify(todo)}'>
+                            <div class="fr">
+                                <a class='check-mark ${todo.IsCompleted || "todo-complete-mark"}' >
+                                    <i style="margin-top:8px"  class="fas fa-check"></i>
+                                </a>
+                                <div class="todo-summary">
+                                    <p>${todo.Summary}</p>
+                                    <div class="todo-thoughtline ${todo.IsCompleted && "display-thoughtline"}"></div>
+                                </div>
+                                <p class="todo-priority ${priority}">${priority[0]}</p>
+                            </div>
+                            <div class="todo-item-desc fr">
+                                <p style="margin-top: 4px">${getShortDate(todo.Deadline)}</p>
+                                <p class="todo-category">${todo.Category}</p>
+                                <p><a href="/home/edit/${todo.Id}"><i style="margin-top: 5px" class="fas fa-pencil-alt"></i></a></p>
+                                <p><a href="#" class="delete-todo"><i style="margin-top: 5px; margin-left: 10px; color: red" class="fas fa-trash-alt"></i></a></p>
+                            </div>
+                        </div>
+                    `;
+
+                markUp += todoMarkUp;
+            })
+
+            return markUp;
+        }
+
+        const getShortDate = dateString => {
+            const monthes = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            const date = new Date(dateString);
+            return monthes[date.getMonth()] + '. ' + date.getDate();
+        }
+
+        const renderTodosInPage = _ => {
+            setTimeout(() => { new TodoAjaxService().getTodos(displayTodosData); }, 100)
+        }
+
+
+        renderTodosInPage();
+
+    </script>
+}

@@ -1,0 +1,152 @@
+﻿@model TodoApp.Models.Todo
+
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles{
+    <link href="~/Content/main-container.css" rel="stylesheet" />
+    <link href="~/Content/todo-form.css" rel="stylesheet" />
+}
+
+<div class="todo-list-container bshblock">
+    <div class="todo-list-header">
+        @Html.ActionLink("Goto home", "Index", "Home", new { @class = "btn btn-raised btn-primary" })
+    </div>
+    <div class="todo-list-body">
+        <h3 class="todo-list-title">What are you going to do?</h3>
+
+        <form id="todo-edit-form">
+
+            <div class="form-horizontal" style="padding: 10px;">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.HiddenFor(model => model.Id)
+                @Html.HiddenFor(model => model.IsCompleted)
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Summary, htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-12">
+                        @Html.EditorFor(model => model.Summary, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.Summary, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Deadline, htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-12">
+                        @Html.EditorFor(model => model.Deadline, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.Deadline, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Priority, htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-12">
+                        @Html.EnumDropDownListFor(model => model.Priority, htmlAttributes: new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.Priority, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group" style="position: relative">
+                    @Html.LabelFor(model => model.Category, htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-12">
+                        @Html.EditorFor(model => model.Category, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.Category, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="category-hints">
+                        <ul class="hints-list">
+                            @*<li class="hint-item">Food</li>*@
+                        </ul>
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <input type="submit" value="Save" id="save-btn" class="btn btn-primary btn-raised" />
+                    </div>
+                </div>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+@section scripts{
+    <script>
+        $(async function () {
+            $("#save-btn").on('click', function () {
+                event.preventDefault();
+                const service = new TodoAjaxService();
+
+                const Id = $('#Id').val();
+                const Summary = $('#Summary').val();
+                const Deadline = $('#Deadline').val();
+                const Priority = $('#Priority').val();
+                const Category = $('#Category').val();
+                const IsCompleted = $('#IsCompleted').val();
+
+                const todo = { Id, Summary, Deadline, Priority, Category, IsCompleted };
+
+                service.putTodo(todo, function () {
+                    window.location.href = "http://localhost:54994/";
+                })
+            })
+
+            const response = await fetch('http://localhost:54994/api/categories/');
+            const categories = await response.json();
+
+            let related = [];
+            let oldRelated = [];
+
+            // Как вам мой выпадающий список в стиле material design?)
+
+
+            $("#Category").on('input', function () {
+                const val = $(this).val().trim();
+                const relatedListContainer = $('.category-hints');
+
+                related = categories.filter(cat => cat.toLowerCase().startsWith(val.toLowerCase()))
+
+
+                if (oldRelated.length !== related.length) {
+                    if (val) {
+                        if (related.length > 0) {
+                            relatedListContainer.css({ visibility: 'visible', opacity: "1" });
+
+                            const list = relatedListContainer.find('.hints-list');
+                            list.empty();
+
+                            related.map(category => {
+                                list.append(`<li class="hint-item">${category}</li>`)
+                            });
+
+                            $('.hint-item').on('click', function () {
+                                const text = $(this).text();
+                                $("#Category").val(text);
+                                related = [];
+                            })
+                        }
+                    } else {
+                        relatedListContainer.css({visibility: 'hidden', opacity: '0'});
+                    }
+                }
+
+                oldRelated = related;
+            })
+
+            $('#Category').on('focus', function () {
+                const val = $(this).val().trim();
+                val && related.length > 0 && $('.category-hints').css({visibility: 'visible', opacity: '1'});
+            })
+
+            $('#Category').on('focusout', function () {
+                $('.category-hints').css({visibility: 'hidden', opacity: '0'});
+            })
+        })
+    </script>
+}
