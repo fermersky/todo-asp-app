@@ -149,3 +149,55 @@
 .completed .todo-complete-mark > i {
     color: #4CAF50;
 }
+
+.delete-todo {
+    position: relative;
+}
+
+.delete-todo:hover::after, .delete-todo:hover::before {
+    opacity: 1;
+    visibility: visible;
+}
+
+.delete-todo:hover::after {
+    top: -32px;
+}
+
+.delete-todo:hover::before {
+    top: -8px;
+}
+
+.delete-todo::after {
+    position: absolute;
+    content: 'Remove todo';
+    padding: 3px 6px;
+    border-radius: 4px;
+    color: #fff;
+    background: #F34336;
+    font-size: 13px;
+    width: 100px;
+    text-align: center;
+    display: block;
+    transition: 0.2s;
+    top: -34px;
+    left: 70%;
+    transform: translateX(-50%);
+    opacity: 0;
+    visibility: hidden;
+}
+
+.delete-todo::before {
+    top: -9px;
+    position: absolute;
+    content: '';
+    left: 70%;
+    transform: translateX(-50%);
+    transition: 0.2s;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 8px 8px 0 8px;
+    border-color: #F34336 transparent transparent transparent;
+    opacity: 0;
+    visibility: hidden;
+}
